@@ -1,25 +1,26 @@
 import numpy as np
 
 
-def dfs(graph, start):
+def bfs(graph, start):
     return _generic_search(graph, start, 0)
 
 
-def bfs(graph, start):
+def dfs(graph, start):
     return _generic_search(graph, start, -1)
 
 
 def _generic_search(graph, start, pop_position):
     states = [(0, [start])]
     acceptable_states = []
+
     while states:
         state = states.pop(pop_position)
 
-        if _is_final_state(graph, state):
+        if _is_acceptable_state(graph, state):
             acceptable_states.append(state)
         else:
             next_states = _get_next_states(graph, state)
-            states = [*next_states, *states]
+            states.extend(next_states)
 
     acceptable_states.sort()
     optimal_state = acceptable_states[0] if acceptable_states else None
@@ -31,7 +32,7 @@ def _generic_search(graph, start, pop_position):
     return optimal_path, optimal_cost
 
 
-def _is_final_state(graph, state):
+def _is_acceptable_state(graph, state):
     cities_count = graph.shape[0]
     path_length = len(state[1])
     return path_length == cities_count + 1
@@ -74,4 +75,3 @@ def _get_next_states_final_step(graph, state):
 
     new_state = (current_cost + cost, current_path + [first_city])
     return [new_state]
-
