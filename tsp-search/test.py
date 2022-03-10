@@ -1,6 +1,6 @@
 from models import City
 from graphs import generate_graph, check_connected
-from search import dfs, bfs
+from search import dfs, bfs, greedy_search
 import time
 
 
@@ -65,5 +65,5 @@ if __name__ == '__main__':
 
     for connections_drop in [0.0, 0.2]:
         for symmetric in [True, False]:
-            for method in [dfs, bfs]:
+            for method in [dfs, bfs, greedy_search]:
                 test(cities, start_city, connections_drop, symmetric, method, seed=seed)

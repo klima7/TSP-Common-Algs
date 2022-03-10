@@ -2,14 +2,14 @@ import numpy as np
 
 
 def bfs(graph, start):
-    return _generic_search(graph, start, 0)
+    return _generic_exhaustive_search(graph, start, 0)
 
 
 def dfs(graph, start):
-    return _generic_search(graph, start, -1)
+    return _generic_exhaustive_search(graph, start, -1)
 
 
-def _generic_search(graph, start, pop_position):
+def _generic_exhaustive_search(graph, start, pop_position):
     states = [(0, [start])]
     acceptable_states = []
 
@@ -30,6 +30,23 @@ def _generic_search(graph, start, pop_position):
 
     optimal_cost, optimal_path = optimal_state
     return optimal_path, optimal_cost
+
+
+def greedy_search(graph, start):
+    cities_count = graph.shape[0]
+    state = (0, [start])
+
+    for i in range(cities_count):
+        next_states = _get_next_states(graph, state)
+
+        if not next_states:
+            return None
+
+        best_next_state = sorted(next_states)[0]
+        state = best_next_state
+
+    cost, path = state
+    return path, cost
 
 
 def _is_acceptable_state(graph, state):
