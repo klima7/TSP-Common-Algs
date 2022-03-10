@@ -1,6 +1,6 @@
 from models import City
 from graphs import generate_graph, check_connected
-from search import dfs, bfs, greedy_search
+from search import dfs, bfs, nearest_neighbor, nearest_insertion
 import time
 
 
@@ -11,9 +11,14 @@ def display_cities(cities):
     print()
 
 
-def display_test_header(connections_drop, symmetric, search_method):
+def display_part_header(connection_drop, symmetric):
+    print(f"{'-'*15} connections_drop: {connection_drop}; symmetric: {symmetric} {'-'*15}")
+    print()
+
+
+def display_test_header(search_method):
     method_name = search_method.__name__.upper()
-    print(f'* TEST connections_drop: {connections_drop}; symmetric: {symmetric}; method: {method_name}')
+    print(f"* METHOD: {method_name}")
 
 
 def display_test_result(connected, result=None, duration=None):
@@ -28,15 +33,11 @@ def display_test_result(connected, result=None, duration=None):
     print()
 
 
-def display_not_connected():
-    print('- Graph is not connected\n')
-
-
 def test(cities, start_city, connections_drop, symmetric, search_method, seed=None):
-    display_test_header(connections_drop, symmetric, search_method)
+    display_test_header(search_method)
     start_time = time.time()
 
-    # 2. Represent the created map as a weighted, directed graph
+    # Represent the created map as a weighted, directed graph
     graph = generate_graph(cities, connections_drop=connections_drop, symmetric=symmetric, seed=seed)
 
     # Make sure whether generated graph is connected
@@ -47,7 +48,7 @@ def test(cities, start_city, connections_drop, symmetric, search_method, seed=No
         display_test_result(connected=False)
         return
 
-    # 3. Search graph
+    # Search graph
     result = search_method(graph, start_city)
 
     end_time = time.time()
@@ -59,11 +60,12 @@ if __name__ == '__main__':
     cities_count = 8
     start_city = 0
 
-    # 1. Create a set of cities
+    # Create a set of cities
     cities = City.generate(count=cities_count, x_range=(-100, 100), y_range=(-100, 100), z_range=(0, 50), seed=seed)
     display_cities(cities)
 
     for connections_drop in [0.0, 0.2]:
         for symmetric in [True, False]:
-            for method in [dfs, bfs, greedy_search]:
+            display_part_header(connections_drop, symmetric)
+            for method in [dfs, bfs, nearest_neighbor, nearest_insertion]:
                 test(cities, start_city, connections_drop, symmetric, method, seed=seed)
