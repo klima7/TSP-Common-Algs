@@ -16,12 +16,13 @@ def _generic_exhaustive_search(graph, start, pop_position):
     acceptable_states = []
 
     while states:
-        state = states.pop(pop_position)
+        current_cost, current_path = states.pop(pop_position)
 
-        if _is_acceptable_path(graph, state[1]):
-            acceptable_states.append(state)
+        if _is_acceptable_path(graph, current_path):
+            acceptable_states.append((current_cost, current_path))
         else:
-            next_states = _get_next_states(graph, state)
+            next_paths = _get_next_paths(current_path, graph)
+            next_states = [(_get_next_cost(graph, next_path, current_cost), next_path) for next_path in next_paths]
             states.extend(next_states)
 
     acceptable_states.sort()
@@ -40,14 +41,8 @@ def _is_acceptable_path(graph, path):
     return path_length == cities_count + 1
 
 
-def _get_next_states(graph, state):
-    cities_count = graph.shape[1]
-    current_path_length = len(state[1])
-
-    if current_path_length == cities_count:
-        return _get_next_states_final_step(graph, state)
-    else:
-        return _get_next_states_standard_step(graph, state)
+def _get_next_cost(graph, next_path, current_cost):
+    return current_cost + _get_path_cost(graph, next_path[-2:])
 
 
 def _get_next_paths(current_path, graph):
@@ -87,41 +82,13 @@ def _get_next_paths_final_step(current_path, graph):
     return [new_path]
 
 
-def _get_next_states_standard_step(graph, state):
-    next_states = []
-    cities_count = graph.shape[1]
-    current_cost, current_path = state
-    current_city = current_path[-1]
-
-    for next_city in range(cities_count):
-        weight = graph[current_city][next_city]
-        if next_city in current_path or weight == np.NINF:
-            continue
-        next_state = (current_cost+weight, current_path + [next_city])
-        next_states.append(next_state)
-    return next_states
-
-
-def _get_next_states_final_step(graph, state):
-    current_cost, current_path = state
-    first_city = current_path[0]
-    current_city = current_path[-1]
-
-    cost = graph[current_city][first_city]
-
-    if cost == np.NINF:
-        return []
-
-    new_state = (current_cost + cost, current_path + [first_city])
-    return [new_state]
-
-
 def nearest_neighbor(graph, start):
     cities_count = graph.shape[0]
     state = (0, [start])
 
     for i in range(cities_count):
-        next_states = _get_next_states(graph, state)
+        next_paths = _get_next_paths(state[1], graph)
+        next_states = [(_get_next_cost(graph, next_path, state[0]), next_path) for next_path in next_paths]
 
         if not next_states:
             return None
@@ -189,17 +156,17 @@ def _get_path_cost(graph, path):
 
 
 def a_star_min(graph, start):
-    return _a_start(graph, start, _min_heuristic)
+    return _a_star(graph, start, _min_heuristic)
 
 
 def a_star_avg(graph, start):
-    return _a_start(graph, start, _avg_heuristic)
+    return _a_star(graph, start, _avg_heuristic)
 
 
-def _a_start(graph, start, heuristic):
+def _a_star(graph, start, heuristic):
     states = []
 
-    initial_state = (0, 0, [start])
+    initial_state = (0, 0, [start])     # cost, real cost, path
     heappush(states, initial_state)
 
     while states:
