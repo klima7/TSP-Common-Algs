@@ -14,6 +14,7 @@ def dfs(graph, start):
 def _generic_exhaustive_search(graph, start, pop_position):
     states = [(0, [start])]
     acceptable_states = []
+    expanded_nodes = 0
 
     while states:
         current_cost, current_path = states.pop(pop_position)
@@ -22,6 +23,7 @@ def _generic_exhaustive_search(graph, start, pop_position):
             acceptable_states.append((current_cost, current_path))
         else:
             next_paths = _get_next_paths(current_path, graph)
+            expanded_nodes += 1
             next_states = [(_get_next_cost(graph, next_path, current_cost), next_path) for next_path in next_paths]
             states.extend(next_states)
 
@@ -29,10 +31,10 @@ def _generic_exhaustive_search(graph, start, pop_position):
     optimal_state = acceptable_states[0] if acceptable_states else None
 
     if optimal_state is None:
-        return None
+        return None, None, expanded_nodes
 
     optimal_cost, optimal_path = optimal_state
-    return optimal_path, optimal_cost
+    return optimal_path, optimal_cost, expanded_nodes
 
 
 def _is_acceptable_path(graph, path):
@@ -85,19 +87,21 @@ def _get_next_paths_final_step(current_path, graph):
 def nearest_neighbor(graph, start):
     cities_count = graph.shape[0]
     state = (0, [start])
+    expanded_nodes = 0
 
     for i in range(cities_count):
         next_paths = _get_next_paths(state[1], graph)
         next_states = [(_get_next_cost(graph, next_path, state[0]), next_path) for next_path in next_paths]
+        expanded_nodes += 1
 
         if not next_states:
-            return None
+            return None, None, expanded_nodes
 
         best_next_state = sorted(next_states)[0]
         state = best_next_state
 
     cost, path = state
-    return path, cost
+    return path, cost, expanded_nodes
 
 
 def nearest_insertion(graph, start):
@@ -109,15 +113,15 @@ def nearest_insertion(graph, start):
         nearest_city = _find_city_nearest_to_path(graph, path)
 
         if not nearest_city:
-            return
+            return None, None, None
 
         path = _get_path_with_inserted_city(graph, path, nearest_city)
 
         if path is None:
-            return
+            return None, None, None
 
     cost = _get_path_cost(graph, path)
-    return path, cost
+    return path, cost, None
 
 
 def _find_city_nearest_to_path(graph, path):
@@ -165,6 +169,7 @@ def a_star_avg(graph, start):
 
 def _a_star(graph, start, heuristic):
     states = []
+    expanded_nodes = 0
 
     initial_state = (0, 0, [start])     # cost, real cost, path
     heappush(states, initial_state)
@@ -173,16 +178,17 @@ def _a_star(graph, start, heuristic):
         cost, real_cost, path = heappop(states)
 
         if _is_acceptable_path(graph, path):
-            return path, cost
+            return path, cost, expanded_nodes
 
         next_paths = _get_next_paths(path, graph)
+        expanded_nodes += 1
 
         for next_path in next_paths:
             next_cost, next_real_cost = _get_a_star_cost(graph, next_path, real_cost, heuristic)
             next_state = (next_cost, next_real_cost, next_path)
             heappush(states, next_state)
 
-    return None
+    return None, None, expanded_nodes
 
 
 def _get_a_star_cost(graph, next_path, current_cost, heuristic):
@@ -193,12 +199,12 @@ def _get_a_star_cost(graph, next_path, current_cost, heuristic):
 
 def _min_heuristic(graph, path):
     edges = _get_possible_edges_weights(graph, path)
-    return min(edges) if edges else 0
+    return np.min(edges) if edges else 0
 
 
 def _avg_heuristic(graph, path):
     edges = _get_possible_edges_weights(graph, path)
-    return sum(edges) / len(edges) if edges else 0
+    return np.mean(edges) if edges else 0
 
 
 def _get_possible_edges_weights(graph, path):

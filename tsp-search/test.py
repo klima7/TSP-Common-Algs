@@ -22,12 +22,15 @@ def display_test_header(search_method):
 
 
 def display_test_result(connected, result=None, duration=None):
+    path, cost, expanded_nodes = result
     print(f'- Connected: {connected}')
-    print(f'- Solved: {result is not None}')
-    if result:
-        path, cost = result
+    print(f'- Solved: {path is not None}')
+    if path:
         print(f'- Path: {path}')
+    if cost:
         print(f'- Cost: {round(cost, 5)}')
+    if expanded_nodes:
+        print(f'- Expanded nodes: {expanded_nodes}')
     if duration is not None:
         print(f'- Time: {round(duration, 5)}s')
     print()
