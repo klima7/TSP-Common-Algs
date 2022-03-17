@@ -1,6 +1,5 @@
 import math
 from heapq import heappush, heappop
-
 import numpy as np
 
 
@@ -200,30 +199,29 @@ def a_star_avg(graph, start):
 def _a_start(graph, start, heuristic):
     states = []
 
-    initial_state = (0, [start])
+    initial_state = (0, 0, [start])
     heappush(states, initial_state)
 
     while states:
-        # print('.', end='')
-        current_cost, current_path = heappop(states)
+        cost, real_cost, path = heappop(states)
 
-        if _is_acceptable_path(graph, current_path):
-            return current_path, current_cost
+        if _is_acceptable_path(graph, path):
+            return path, cost
 
-        next_paths = _get_next_paths(current_path, graph)
+        next_paths = _get_next_paths(path, graph)
 
         for next_path in next_paths:
-            next_cost = _get_a_star_cost(graph, next_path, heuristic)
-            next_state = (next_cost, next_path)
+            next_cost, next_real_cost = _get_a_star_cost(graph, next_path, real_cost, heuristic)
+            next_state = (next_cost, next_real_cost, next_path)
             heappush(states, next_state)
 
     return None
 
 
-def _get_a_star_cost(graph, path, heuristic):
-    c = _get_path_cost(graph, path)
-    h = heuristic(graph, path)
-    return c + h
+def _get_a_star_cost(graph, next_path, current_cost, heuristic):
+    c = current_cost + _get_path_cost(graph, next_path[-2:])
+    h = heuristic(graph, next_path)
+    return c + h, c
 
 
 def _min_heuristic(graph, path):
