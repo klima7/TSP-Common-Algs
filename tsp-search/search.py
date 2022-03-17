@@ -1,4 +1,5 @@
 import math
+from heapq import heappush, heappop
 
 import numpy as np
 
@@ -18,7 +19,7 @@ def _generic_exhaustive_search(graph, start, pop_position):
     while states:
         state = states.pop(pop_position)
 
-        if _is_acceptable_state(graph, state):
+        if _is_acceptable_path(graph, state[1]):
             acceptable_states.append(state)
         else:
             next_states = _get_next_states(graph, state)
@@ -34,9 +35,9 @@ def _generic_exhaustive_search(graph, start, pop_position):
     return optimal_path, optimal_cost
 
 
-def _is_acceptable_state(graph, state):
+def _is_acceptable_path(graph, path):
     cities_count = graph.shape[0]
-    path_length = len(state[1])
+    path_length = len(path)
     return path_length == cities_count + 1
 
 
@@ -48,6 +49,43 @@ def _get_next_states(graph, state):
         return _get_next_states_final_step(graph, state)
     else:
         return _get_next_states_standard_step(graph, state)
+
+
+def _get_next_paths(current_path, graph):
+    cities_count = graph.shape[1]
+    current_path_length = len(current_path)
+
+    if current_path_length == cities_count:
+        return _get_next_paths_final_step(current_path, graph)
+    else:
+        return _get_next_paths_standard_step(current_path, graph)
+
+
+def _get_next_paths_standard_step(current_path, graph):
+    next_paths = []
+    cities_count = graph.shape[1]
+    current_city = current_path[-1]
+
+    for next_city in range(cities_count):
+        weight = graph[current_city][next_city]
+        if next_city in current_path or weight == np.NINF:
+            continue
+        next_path = current_path + [next_city]
+        next_paths.append(next_path)
+    return next_paths
+
+
+def _get_next_paths_final_step(current_path, graph):
+    first_city = current_path[0]
+    current_city = current_path[-1]
+
+    cost = graph[current_city][first_city]
+
+    if cost == np.NINF:
+        return []
+
+    new_path = current_path + [first_city]
+    return [new_path]
 
 
 def _get_next_states_standard_step(graph, state):
@@ -149,3 +187,63 @@ def _get_path_cost(graph, path):
         cost = graph[current_city, next_city]
         total_cost += cost
     return total_cost
+
+
+def a_star_min(graph, start):
+    return _a_start(graph, start, _min_heuristic)
+
+
+def a_star_avg(graph, start):
+    return _a_start(graph, start, _avg_heuristic)
+
+
+def _a_start(graph, start, heuristic):
+    states = []
+
+    initial_state = (0, [start])
+    heappush(states, initial_state)
+
+    while states:
+        # print('.', end='')
+        current_cost, current_path = heappop(states)
+
+        if _is_acceptable_path(graph, current_path):
+            return current_path, current_cost
+
+        next_paths = _get_next_paths(current_path, graph)
+
+        for next_path in next_paths:
+            next_cost = _get_a_star_cost(graph, next_path, heuristic)
+            next_state = (next_cost, next_path)
+            heappush(states, next_state)
+
+    return None
+
+
+def _get_a_star_cost(graph, path, heuristic):
+    c = _get_path_cost(graph, path)
+    h = heuristic(graph, path)
+    return c + h
+
+
+def _min_heuristic(graph, path):
+    edges = _get_possible_edges_weights(graph, path)
+    return min(edges) if edges else 0
+
+
+def _avg_heuristic(graph, path):
+    edges = _get_possible_edges_weights(graph, path)
+    return sum(edges) / len(edges) if edges else 0
+
+
+def _get_possible_edges_weights(graph, path):
+    possible_edges = []
+
+    for y in range(graph.shape[0]):
+        for x in range(graph.shape[1]):
+            weight = graph[y][x]
+
+            if weight != np.NINF and x not in path and y not in path:
+                possible_edges.append(weight)
+
+    return possible_edges

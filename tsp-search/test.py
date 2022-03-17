@@ -1,6 +1,6 @@
 from models import City
 from graphs import generate_graph, check_connected
-from search import dfs, bfs, nearest_neighbor, nearest_insertion
+from search import dfs, bfs, nearest_neighbor, nearest_insertion, a_star_min, a_star_avg
 import time
 
 
@@ -57,8 +57,10 @@ def test(cities, start_city, connections_drop, symmetric, search_method, seed=No
 
 if __name__ == '__main__':
     seed = 222467
-    cities_count = 8
+    cities_count = 9
     start_city = 0
+    test_exhaustive = True
+    methods = [dfs, bfs, nearest_neighbor, nearest_insertion, a_star_min, a_star_avg]
 
     # Create a set of cities
     cities = City.generate(count=cities_count, x_range=(-100, 100), y_range=(-100, 100), z_range=(0, 50), seed=seed)
@@ -67,5 +69,5 @@ if __name__ == '__main__':
     for connections_drop in [0.0, 0.2]:
         for symmetric in [True, False]:
             display_part_header(connections_drop, symmetric)
-            for method in [dfs, bfs, nearest_neighbor, nearest_insertion]:
+            for method in methods:
                 test(cities, start_city, connections_drop, symmetric, method, seed=seed)
