@@ -60,7 +60,7 @@ def test(cities, start_city, connections_drop, symmetric, search_method, seed=No
 
 if __name__ == '__main__':
     seed = 222467
-    cities_count = 8
+    cities_count = 9
     start_city = 0
     test_exhaustive = True
     methods = [dfs, bfs, nearest_neighbor, nearest_insertion, a_star_min, a_star_avg]

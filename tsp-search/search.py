@@ -184,14 +184,14 @@ def _a_star(graph, start, heuristic):
         expanded_nodes += 1
 
         for next_path in next_paths:
-            next_cost, next_real_cost = _get_a_star_cost(graph, next_path, real_cost, heuristic)
+            next_cost, next_real_cost = _get_next_a_star_cost(graph, next_path, real_cost, heuristic)
             next_state = (next_cost, next_real_cost, next_path)
             heappush(states, next_state)
 
     return None, None, expanded_nodes
 
 
-def _get_a_star_cost(graph, next_path, current_cost, heuristic):
+def _get_next_a_star_cost(graph, next_path, current_cost, heuristic):
     c = current_cost + _get_path_cost(graph, next_path[-2:])
     h = heuristic(graph, next_path)
     return c + h, c
@@ -199,22 +199,16 @@ def _get_a_star_cost(graph, next_path, current_cost, heuristic):
 
 def _min_heuristic(graph, path):
     edges = _get_possible_edges_weights(graph, path)
-    return np.min(edges) if edges else 0
+    return np.min(edges) if edges.size else 0
 
 
 def _avg_heuristic(graph, path):
     edges = _get_possible_edges_weights(graph, path)
-    return np.mean(edges) if edges else 0
+    return np.mean(edges) if edges.size else 0
 
 
 def _get_possible_edges_weights(graph, path):
-    possible_edges = []
-
-    for y in range(graph.shape[0]):
-        for x in range(graph.shape[1]):
-            weight = graph[y][x]
-
-            if weight != np.NINF and x not in path and y not in path:
-                possible_edges.append(weight)
-
-    return possible_edges
+    edges = np.delete(graph, path, 0)
+    edges = np.delete(edges, path, 1)
+    edges = edges[edges != np.NINF]
+    return edges
