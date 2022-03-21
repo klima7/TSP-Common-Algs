@@ -1,23 +1,24 @@
 import math
 from heapq import heappush, heappop
+from collections import deque
 import numpy as np
 
 
 def bfs(graph, start):
-    return _generic_exhaustive_search(graph, start, 0)
+    return _generic_exhaustive_search(graph, start, deque.popleft)
 
 
 def dfs(graph, start):
-    return _generic_exhaustive_search(graph, start, -1)
+    return _generic_exhaustive_search(graph, start, deque.pop)
 
 
-def _generic_exhaustive_search(graph, start, pop_position):
-    states = [(0, [start])]
+def _generic_exhaustive_search(graph, start, pop_fun):
+    states = deque([(0, [start])])
     acceptable_states = []
     expanded_nodes = 0
 
     while states:
-        current_cost, current_path = states.pop(pop_position)
+        current_cost, current_path = pop_fun(states)
 
         if _is_acceptable_path(graph, current_path):
             acceptable_states.append((current_cost, current_path))
